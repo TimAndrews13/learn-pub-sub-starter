@@ -35,6 +35,12 @@ func main() {
 
 	pubsub.SubscribeJSON(connection, routing.ExchangePerilDirect, "pause."+userName, routing.PauseKey, "transient", handlerPause(gameState))
 
+	ch, _, err := pubsub.DeclareAndBind(connection, routing.ExchangePerilTopic, "army_moves."+userName, "army_moves.*", "transient")
+	if err != nil {
+		fmt.Printf("error binding army_moves channel: %v", err)
+		return
+	}
+
 	for {
 		input := gamelogic.GetInput()
 		if len(input) == 0 {
@@ -51,6 +57,13 @@ func main() {
 				fmt.Printf("error moving unit: %v\n", err)
 			}
 			fmt.Printf("Move of %v to %v was successful\n", armyMove.Units, armyMove.ToLocation)
+			err = pubsub.PublishJSON(ch, routing.ExchangePerilTopic, "army_moves."+userName, armyMove)
+			if err != nil {
+				fmt.Printf("error publishing move to JSON: %v\n", err)
+
+			} else {
+				fmt.Printf("Move Published Successfully\n")
+			}
 		} else if input[0] == "status" {
 			gameState.CommandStatus()
 		} else if input[0] == "help" {
