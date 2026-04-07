@@ -7,7 +7,15 @@ import (
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
-func SubscribeJSON[T any](conn *amqp.Connection, exchange, queueName, key string, queueType SimpleQueueType, handler func(T)) error {
+type AckType string
+
+const (
+	Ack         AckType = "ack"
+	NackRequeue AckType = "nackRequeue"
+	NackDiscard AckType = "nackDiscard"
+)
+
+func SubscribeJSON[T any](conn *amqp.Connection, exchange, queueName, key string, queueType SimpleQueueType, handler func(T) AckType) error {
 	ch, queue, err := DeclareAndBind(conn, exchange, queueName, key, queueType)
 	if err != nil {
 		fmt.Printf("error declaring channel and binding queue: %v\n", err)
@@ -27,11 +35,17 @@ func SubscribeJSON[T any](conn *amqp.Connection, exchange, queueName, key string
 				fmt.Printf("error unmarsahlling JSON: %v", err)
 				return
 			}
-			handler(msg)
-			err = d.Ack(false)
-			if err != nil {
-				fmt.Printf("error removing message from queue: %v", err)
-				return
+			ackType := handler(msg)
+			switch ackType {
+			case Ack:
+				d.Ack(false)
+				fmt.Println("DEBUG: Ack")
+			case NackRequeue:
+				d.Nack(false, true)
+				fmt.Println("DEBUG: NackRequeue")
+			case NackDiscard:
+				d.Nack(false, false)
+				fmt.Println("DEBUG: NackDiscard")
 			}
 		}
 		err = ch.Close()

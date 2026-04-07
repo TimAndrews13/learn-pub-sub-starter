@@ -35,9 +35,11 @@ func main() {
 
 	pubsub.SubscribeJSON(connection, routing.ExchangePerilDirect, "pause."+userName, routing.PauseKey, "transient", handlerPause(gameState))
 
-	ch, _, err := pubsub.DeclareAndBind(connection, routing.ExchangePerilTopic, "army_moves."+userName, "army_moves.*", "transient")
+	pubsub.SubscribeJSON(connection, routing.ExchangePerilTopic, routing.ArmyMovesPrefix+"."+userName, routing.ArmyMovesPrefix+".*", "transient", handlerMove(gameState))
+
+	ch, err := connection.Channel()
 	if err != nil {
-		fmt.Printf("error binding army_moves channel: %v", err)
+		fmt.Printf("error creating channel: %v\n", err)
 		return
 	}
 
