@@ -37,6 +37,39 @@ func main() {
 		return
 	}
 
+	gameState := gamelogic.NewGameState(userName)
+
+	for {
+		input := gamelogic.GetInput()
+		if len(input) == 0 {
+			continue
+		}
+		if input[0] == "spawn" {
+			err := gameState.CommandSpawn(input)
+			if err != nil {
+				fmt.Printf("error spawning unit: %v\n", err)
+			}
+		} else if input[0] == "move" {
+			armyMove, err := gameState.CommandMove(input)
+			if err != nil {
+				fmt.Printf("error moving unit: %v\n", err)
+			}
+			fmt.Printf("Move of %v to %v was successful\n", armyMove.Units, armyMove.ToLocation)
+		} else if input[0] == "status" {
+			gameState.CommandStatus()
+		} else if input[0] == "help" {
+			gamelogic.PrintClientHelp()
+		} else if input[0] == "spam" {
+			fmt.Printf("Spamming not allowed yet!\n")
+		} else if input[0] == "quit" {
+			gamelogic.PrintQuit()
+			break
+		} else {
+			fmt.Printf("Command Not Understood...\nTry Again...\n")
+			continue
+		}
+	}
+
 	signalChan := make(chan os.Signal, 1)
 	signal.Notify(signalChan, os.Interrupt)
 	<-signalChan
