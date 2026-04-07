@@ -23,9 +23,9 @@ func DeclareAndBind(conn *amqp.Connection, exchange, queueName, key string, queu
 
 	var newQueue amqp.Queue
 	if queueType == "durable" {
-		newQueue, err = ch.QueueDeclare(queueName, true, false, false, false, nil)
+		newQueue, err = ch.QueueDeclare(queueName, true, false, false, false, amqp.Table{"x-dead-letter-exchange": "peril_dlx"})
 	} else if queueType == "transient" {
-		newQueue, err = ch.QueueDeclare(queueName, false, true, true, false, nil)
+		newQueue, err = ch.QueueDeclare(queueName, false, true, true, false, amqp.Table{"x-dead-letter-exchange": "peril_dlx"})
 	} else {
 		fmt.Printf("not a valid queue type\n")
 		return &amqp.Channel{}, amqp.Queue{}, nil
