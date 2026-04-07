@@ -33,15 +33,17 @@ func main() {
 
 	gameState := gamelogic.NewGameState(userName)
 
-	pubsub.SubscribeJSON(connection, routing.ExchangePerilDirect, "pause."+userName, routing.PauseKey, "transient", handlerPause(gameState))
-
-	pubsub.SubscribeJSON(connection, routing.ExchangePerilTopic, routing.ArmyMovesPrefix+"."+userName, routing.ArmyMovesPrefix+".*", "transient", handlerMove(gameState))
-
 	ch, err := connection.Channel()
 	if err != nil {
 		fmt.Printf("error creating channel: %v\n", err)
 		return
 	}
+
+	pubsub.SubscribeJSON(connection, routing.ExchangePerilDirect, "pause."+userName, routing.PauseKey, "transient", handlerPause(gameState))
+
+	pubsub.SubscribeJSON(connection, routing.ExchangePerilTopic, routing.ArmyMovesPrefix+"."+userName, routing.ArmyMovesPrefix+".*", "transient", handlerMove(gameState, ch))
+
+	pubsub.SubscribeJSON(connection, routing.ExchangePerilTopic, routing.WarRecognitionsPrefix, routing.WarRecognitionsPrefix+".*", "durable", handlerWar(gameState))
 
 	for {
 		input := gamelogic.GetInput()
