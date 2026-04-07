@@ -31,13 +31,9 @@ func main() {
 		return
 	}
 
-	_, _, err = pubsub.DeclareAndBind(connection, routing.ExchangePerilDirect, routing.PauseKey+"."+userName, routing.PauseKey, "transient")
-	if err != nil {
-		fmt.Printf("error declaring and binding channel and queue: %v\n", err)
-		return
-	}
-
 	gameState := gamelogic.NewGameState(userName)
+
+	pubsub.SubscribeJSON(connection, routing.ExchangePerilDirect, "pause."+userName, routing.PauseKey, "transient", handlerPause(gameState))
 
 	for {
 		input := gamelogic.GetInput()
