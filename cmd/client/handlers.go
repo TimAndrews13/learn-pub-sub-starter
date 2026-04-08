@@ -23,11 +23,14 @@ func handlerMove(gs *gamelogic.GameState, ch *amqp.Channel) func(move gamelogic.
 	return func(move gamelogic.ArmyMove) pubsub.AckType {
 		moveOutcome := gs.HandleMove(move)
 		if moveOutcome == gamelogic.MoveOutcomeMakeWar {
-			pubsub.PublishJSON(ch, routing.ExchangePerilTopic, routing.WarRecognitionsPrefix+"."+gs.GetPlayerSnap().Username, gamelogic.RecognitionOfWar{
+			err := pubsub.PublishJSON(ch, routing.ExchangePerilTopic, routing.WarRecognitionsPrefix+"."+gs.GetPlayerSnap().Username, gamelogic.RecognitionOfWar{
 				Attacker: move.Player,
 				Defender: gs.GetPlayerSnap(),
 			})
-			return pubsub.NackRequeue
+			if err != nil {
+				return pubsub.NackRequeue
+			}
+			return pubsub.Ack
 		} else if moveOutcome == gamelogic.MoveOutComeSafe {
 			return pubsub.Ack
 		} else if moveOutcome == gamelogic.MoveOutcomeSamePlayer {
