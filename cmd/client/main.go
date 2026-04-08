@@ -43,7 +43,7 @@ func main() {
 
 	pubsub.SubscribeJSON(connection, routing.ExchangePerilTopic, routing.ArmyMovesPrefix+"."+userName, routing.ArmyMovesPrefix+".*", "transient", handlerMove(gameState, ch))
 
-	pubsub.SubscribeJSON(connection, routing.ExchangePerilTopic, routing.WarRecognitionsPrefix, routing.WarRecognitionsPrefix+".*", "durable", handlerWar(gameState))
+	pubsub.SubscribeJSON(connection, routing.ExchangePerilTopic, routing.WarRecognitionsPrefix, routing.WarRecognitionsPrefix+".*", "durable", handlerWar(gameState, ch))
 
 	for {
 		input := gamelogic.GetInput()
