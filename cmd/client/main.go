@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"strconv"
+	"time"
 
 	"github.com/bootdotdev/learn-pub-sub-starter/internal/gamelogic"
 	"github.com/bootdotdev/learn-pub-sub-starter/internal/pubsub"
@@ -73,7 +75,23 @@ func main() {
 		} else if input[0] == "help" {
 			gamelogic.PrintClientHelp()
 		} else if input[0] == "spam" {
-			fmt.Printf("Spamming not allowed yet!\n")
+			if len(input) != 2 {
+				fmt.Printf("spam requires only one number...\nTry Again...\n")
+				continue
+			}
+			n, err := strconv.Atoi(input[1])
+			if err != nil {
+				fmt.Printf("error converting spam number from string to integer: %v\nTry Again...\n", err)
+				continue
+			}
+			for i := 0; i < n; i++ {
+				maliciousMsg := gamelogic.GetMaliciousLog()
+				err = pubsub.PublishGob(ch, routing.ExchangePerilTopic, routing.GameLogSlug+"."+userName, routing.GameLog{
+					CurrentTime: time.Now(),
+					Message:     maliciousMsg,
+					Username:    userName,
+				})
+			}
 		} else if input[0] == "quit" {
 			gamelogic.PrintQuit()
 			break

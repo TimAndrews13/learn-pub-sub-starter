@@ -15,6 +15,12 @@ func SubscribeGob[T any](conn *amqp.Connection, exchange, queueName, key string,
 		return err
 	}
 
+	err = ch.Qos(10, 0, false)
+	if err != nil {
+		fmt.Printf("failed to set QoS: %v\n", err)
+		return err
+	}
+
 	deliveries, err := ch.Consume(queue.Name, "", false, false, false, false, nil)
 	if err != nil {
 		fmt.Printf("error returning deliveries: %v\n", err)
