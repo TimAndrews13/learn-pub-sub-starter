@@ -33,9 +33,9 @@ func main() {
 		return
 	}
 
-	_, _, err = pubsub.DeclareAndBind(connection, routing.ExchangePerilTopic, routing.GameLogSlug, routing.GameLogSlug+".*", "durable")
+	err = pubsub.SubscribeGob(connection, routing.ExchangePerilTopic, routing.GameLogSlug, routing.GameLogSlug+".*", "durable", handlerLogs())
 	if err != nil {
-		fmt.Printf("error declaring and binding channel and queue: %v\n", err)
+		fmt.Printf("error subscribing to game log channel: %v", err)
 		return
 	}
 
